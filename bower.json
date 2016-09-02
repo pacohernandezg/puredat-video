@@ -2,7 +2,9 @@
   "name": "puredat-video",
   "main": "puredat-video.html",
   "dependencies": {
-    "polymer": "Polymer/polymer#^1.4.0"
+    "polymer": "Polymer/polymer#^1.4.0",
+    "paper-input": "^1.1.11",
+    "paper-icon-button": ""
   },
   "devDependencies": {
     "iron-component-page": "PolymerElements/iron-component-page#^1.0.0",

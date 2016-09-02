@@ -1,34 +1,160 @@
 <link rel="import" href="../polymer/polymer.html">
-
+<link rel="import" href="../paper-input/paper-input-container.html">
+<link rel="import" href="../paper-icon-button/paper-icon-button.html">
 <!--
-`puredat-video`
-
-
-@demo demo/index.html 
+	`puredat-video` "VIDEO" type, "ONE" cardinality widget.
+	
+	@demo demo/index.html 
 -->
-
 <dom-module id="puredat-video">
-  <template>
-    <style>
-      :host {
-        display: block;
-      }
-    </style>
-    <h2>TO-DO [[prop1]]</h2>
-  </template>
-
-  <script>
-    Polymer({
-
-      is: 'puredat-video',
-
-      properties: {
-        prop1: {
-          type: String,
-          value: 'puredat-video',
-        },
-      },
-
-    });
-  </script>
+	<template>
+		<style>
+			paper-input-container {
+				--paper-input-container: {
+					padding-right: 10px;
+				}
+			}
+			
+			#dropFile {
+				border: 1px dotted #9e9e9e;
+				cursor: pointer;
+			}
+			
+			#dropFile.hover {
+				border: 1px dotted #00ff00;
+			}
+		</style>
+		
+		<paper-input-container 
+				invalid="[[_isInvalid(errorMessage)]]"
+				always-float-label>
+			<label>[[label]]</label>
+			<input is="iron-input" disabled style="display:none"></input>
+			<input type="file" id="file" on-change="selectHandler" style="display: none"></input>
+			<div id="dropFile"
+					on-dragover="dragHoverHandler"
+					on-dragleave="dragHoverHandler"
+					on-click="selectFileHandler"
+					on-drop="selectHandler"
+					style="cursor: pointer">
+				<div style="text-align: left; min-height: 50px">
+					<div hidden$="[[!_isSelected]]">
+						<video id="preview" style="max-width: 100%; max-height: 100%" controls></img>
+						<paper-icon-button hidden$="[[readOnly]]" icon="remove-circle" on-click="clearHandler"></paper-icon-button>
+					</div>
+				</div>
+			</div>
+			<paper-input-error>[[errorMessage]]</paper-input-error>
+		</paper-input-container>
+	</template>
+	
+	<script>
+		Polymer({
+			is: 'puredat-video',
+			
+			properties: {
+				
+				/** Name */
+				name: {
+					type: String
+				},
+				
+				/** Descriptive label. */
+				label: {
+					type: String
+				},
+				
+				/** Value. */
+				value: {
+					type: String,
+					notify: true
+				},
+				
+				_isSelected: {
+					type: Boolean,
+					value: false
+				},
+				
+				/** Error message. */
+				errorMessage: {
+					type: String
+				},
+				
+				/** Number of columns in a row of 10 columns. */
+				cols: {
+					type: Number,
+					value: 5,
+					observer: '_colsChanged'
+				},
+				
+				/** Read only. */
+				readOnly: {
+					type: Boolean,
+					value: false
+				}
+			},
+			
+			observers: ['valueChangedHandler(value)'],
+			
+			valueChangedHandler: function(value) {
+				if (value != null) {
+					this.$.preview.src = value;
+				}
+				this._isSelected = (value != null);
+			},
+			
+			_colsChanged: function(newValue, oldValue) {
+				this.style.minWidth = (50 * newValue) + "px";
+				this.style.flex = (10 * newValue) + "%";
+			},
+			
+			selectHandler: function(event) {
+				event.stopPropagation();
+				event.preventDefault();
+				if (!this.readOnly) {
+					this.dragHoverHandler(event);
+					var files = event.target.files || event.dataTransfer.files;
+					var file = files[0];
+					
+					if (file != null) {
+						var context = this;
+						var reader = new FileReader();
+						reader.onload = function(event2) {
+							context.set("value", event2.target.result);
+						}
+						reader.readAsDataURL(file);
+					}
+				}
+			},
+			
+			dragHoverHandler: function(event) {
+				event.stopPropagation();
+				event.preventDefault();
+                this.$.dropFile.className = (event.type == "dragover" ? "style-scope puredat-video hover" : "style-scope puredat-video");
+			},
+			
+			selectFileHandler: function(e) {
+				if (!this.readOnly) {
+					this.$.file.click();
+				}
+			},
+			
+			clearHandler: function(event) {
+				event.stopPropagation();
+				event.preventDefault();
+				this._isSelected = false;
+				this.value = null;
+			},
+			
+			/**
+			 * Returns if the field is valid.
+			 * @param {String} errorMessage The error message.
+			 * @return {Boolean} If the input field is valid.
+			 */
+			_isInvalid: function(errorMessage) {
+				return errorMessage != null
+						&& errorMessage != "";
+			}
+		});
+	</script>
 </dom-module>
